@@ -1,8 +1,18 @@
 import platform
 import os
 
+def detect_linux_log(candidates):
+    """Return the first valid log file path from candidate list."""
+    for path in candidates:
+        if os.path.exists(path):
+            print(f"[+] Using Linux log file: {path}")
+            return path
+    
+    print("[!] No valid log file found. Agent will not run.")
+    return None
+
 def collect_linux_logs(path):
-    if not os.path.exists(path):
+    if path is None or not os.path.exists(path):
         return []
     with open(path, "r") as f:
         return [line.strip() for line in f.readlines()]
@@ -31,6 +41,7 @@ def collect_windows_logs(log_name):
 def collect_logs(config):
     if platform.system() == "Windows":
         return collect_windows_logs(config["windows_log"])
-    else:
-        return collect_linux_logs(config["log_path_linux"])
 
+    # Auto-detect Linux log path
+    log_file = detect_linux_log(config["log_candidates"])
+    return collect_linux_logs(log_file)
