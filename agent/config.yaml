@@ -1,1 +1,8 @@
+api_url: "http://localhost:5000/api/logs"
+interval: 10
+log_path_linux: "/var/log/auth.log"
+windows_log: "Security"
+retry_attempts: 3
+retry_delay: 2
+use_realtime_monitoring: true
 
