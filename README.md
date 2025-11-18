@@ -24,21 +24,21 @@ It simulates the core components of an enterprise SIEM:
 
 **Security engineers, SOC analysts, and detection engineers routinely work with:**
 
-Distributed agents  
+* Distributed agents  
 
-Log normalization pipelines  
+* Log normalization pipelines  
 
-SIEM data ingestion  
+* SIEM data ingestion  
 
-System logging frameworks (auth.log, syslog, journald, Windows Event Log)  
+* System logging frameworks (auth.log, syslog, journald, Windows Event Log)  
 
-API design  
+* API design  
 
-Fault-tolerant event forwarding  
+* Fault-tolerant event forwarding  
 
-Mini-SOC Suite demonstrates all of this in a compact project you can explain clearly in interviews.  
+* Mini-SOC Suite demonstrates all of this in a compact project you can explain clearly in interviews.  
 
-Recruiters and hiring managers can understand its purpose at a glance, and technical reviewers can dig into the code to see your engineering capability.  
+**Recruiters and hiring managers can understand its purpose at a glance, and technical reviewers can dig into the code to see your engineering capability.**  
 
 ## 🎯 Project Goals
 
@@ -48,39 +48,39 @@ Recruiters and hiring managers can understand its purpose at a glance, and techn
 
 **✔ Cross-platform log collection**
 
-Linux (auth.log, syslog, journalctl)  
+* Linux (auth.log, syslog, journalctl)  
 
-Windows (Security/System/Application logs)  
+* Windows (Security/System/Application logs)  
 
 **✔ Real-time monitoring**
 
-Watches files  
+* Watches files  
 
-Streams systemd-journal on modern systems  
+* Streams systemd-journal on modern systems  
 
-Uses watchdog or subprocess streaming  
+* Uses watchdog or subprocess streaming  
 
 **✔ Log normalization**  
 
-Converts raw logs into structured, SIEM-friendly JSON.  
+* Converts raw logs into structured, SIEM-friendly JSON.  
 
 **✔ Forwarding + Reliability**  
 
-HTTP POST to SIEM backend  
+* HTTP POST to SIEM backend  
 
-Automatic retry  
+* Automatic retry  
 
-Backoff delay  
+* Backoff delay  
 
-Fallback local logging  
+* Fallback local logging  
 
 **✔ Minimal SIEM backend**
 
-Flask API endpoint  
+* Flask API endpoint  
 
-Stores logs in SQLite  
+* Stores logs in SQLite  
 
-Prints events to terminal for live monitoring  
+* Prints events to terminal for live monitoring  
 
 ## 🧩 Architecture Overview  
 
@@ -107,31 +107,31 @@ Prints events to terminal for live monitoring
 ## 🖥️ Components
 🔹 1. Log Collection Agent (agent/)  
 
-A cross-platform Python service that:  
+* A cross-platform Python service that:  
 
-Identifies available logs automatically  
+* Identifies available logs automatically  
 
-Selects the best available source  
+* Selects the best available source  
 
-Handles journald, classic /var/log/* files, and Windows logs  
+* Handles journald, classic /var/log/* files, and Windows logs  
 
-Normalizes each event into structured JSON  
+* Normalizes each event into structured JSON  
 
-Sends logs to the SIEM backend  
+* Sends logs to the SIEM backend  
 
-Designed to behave like a lightweight Splunk Forwarder or Elastic Beats agent.  
+**Designed to behave like a lightweight Splunk Forwarder or Elastic Beats agent.**  
 
 🔹 2. SIEM API Backend (SIEM-api/)  
 
-A minimal Flask API that:  
+* A minimal Flask API that:  
 
-Accepts POSTed log events  
+* Accepts POSTed log events  
 
-Stores them in a SQLite database  
+* Stores them in a SQLite database  
 
-Prints them to console for demonstration  
+* Prints them to console for demonstration  
 
-This allows recruiters/interviewers to see the full pipeline working live.  
+* This allows recruiters/interviewers to see the full pipeline working live.  
 
 ## ⚙️ Installation
 ```
