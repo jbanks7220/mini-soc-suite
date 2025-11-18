@@ -1,87 +1,117 @@
 import os
 import time
 import platform
+import subprocess
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# Extra fallback candidates
 DEFAULT_LOGS = [
     "/var/log/syslog",
     "/var/log/auth.log",
     "/var/log/messages",
     "/var/log/kern.log",
-    "/var/log/dmesg",
 ]
 
 
-def autodetect_log_file(config):
-    """
-    Auto-selects the best available log file based on:
-    1. log_candidates in config.yaml
-    2. Fallback system logs (DEFAULT_LOGS)
-    3. Creates agent_fallback.log if no logs exist
-    """
+def journald_available():
+    """Check if systemd journal exists and journalctl is usable."""
+    try:
+        subprocess.run(
+            ["journalctl", "-n", "1"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        return True
+    except FileNotFoundError:
+        return False
 
+
+def tail_journald():
+    """Continuously stream logs from journald."""
+    print("[+] Using systemd journal as log source.")
+
+    # -f = follow
+    # -n 0 = don't print old logs
+    cmd = ["journalctl", "-f", "-n", "0", "-o", "short"]
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1
+    )
+
+    print("[+] Journald stream started.\n")
+
+    for line in process.stdout:
+        clean = line.strip()
+        if clean:
+            print(f"[LOG] {clean}")
+
+
+def autodetect_log_file(config):
+    """Traditional file-based autodetect (fallback only now)."""
     candidates = config.get("log_candidates", [])
 
     print("[+] Checking configured log candidates...")
 
-    # Step 1: Try user-specified log files
     for log_path in candidates:
         if os.path.isfile(log_path):
-            print(f"[+] Using found log file: {log_path}")
+            print(f"[+] Found log file: {log_path}")
             return log_path
-        else:
-            print(f"[!] Not found: {log_path}")
 
-    print("[!] No user-defined logs found. Trying default system logs...")
+    print("[!] No configured log files found. Trying system defaults...")
 
-    # Step 2: Try known system logs
     for log_path in DEFAULT_LOGS:
         if os.path.isfile(log_path):
-            print(f"[+] Using auto-detected log file: {log_path}")
+            print(f"[+] Found default log file: {log_path}")
             return log_path
 
-    print("[!] No usable system logs found. Creating fallback log...")
-
-    # Step 3: Create fallback
-    fallback = "agent_fallback.log"
-    with open(fallback, "a") as f:
-        f.write("Initialized fallback log file.\n")
-
-    print(f"[+] Fallback file created: {fallback}")
-    return fallback
+    return None
 
 
 class LogHandler(FileSystemEventHandler):
     def __init__(self, logfile):
         self.logfile = logfile
+        self.last_size = 0
 
     def on_modified(self, event):
         if event.src_path == self.logfile:
             try:
                 with open(self.logfile, "r") as f:
-                    lines = f.readlines()
-                    if lines:
-                        print(f"[LOG] {lines[-1].strip()}")
+                    f.seek(self.last_size)
+                    new_data = f.read()
+                    self.last_size = f.tell()
+
+                for line in new_data.splitlines():
+                    print(f"[LOG] {line.strip()}")
+
             except Exception as e:
                 print(f"[Watcher Error] {e}")
 
 
 def start_realtime_monitor(config):
+    # 1. Try traditional log files
     logfile = autodetect_log_file(config)
 
-    if not os.path.isfile(logfile):
-        print("[!] No readable logfile. Monitor exiting.")
-        return
+    # 2. If none exist, use journald
+    if logfile is None:
+        if journald_available():
+            print("[+] No log files found — switching to journald mode.")
+            return tail_journald()
 
-    print(f"[+] Starting real-time monitor for: {logfile}")
+        # 3. If journald ALSO missing → fallback
+        print("[!] No journald or log files. Creating fallback.")
+        logfile = "agent_fallback.log"
+        open(logfile, "a").close()
+
+    # 4. Classic file monitoring mode
+    print(f"[+] Monitoring file: {logfile}")
 
     handler = LogHandler(logfile)
     observer = Observer()
-
-    directory = os.path.dirname(logfile) or "."
-    observer.schedule(handler, path=directory, recursive=False)
+    observer.schedule(handler, os.path.dirname(logfile) or ".", recursive=False)
 
     try:
         observer.start()
