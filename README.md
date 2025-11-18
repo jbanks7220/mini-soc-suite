@@ -4,19 +4,19 @@
 **Mini-SOC Suite is a small, fully functional Security Operations Center (SOC) pipeline designed for learning, demonstration, and portfolio use.**  
 It simulates the core components of an enterprise SIEM:  
 
-*A Log Collection Agent (runs on Windows + Linux)  
+* A Log Collection Agent (runs on Windows + Linux)  
 
-*Real-time log monitoring  
+* Real-time log monitoring  
 
-*Automatic log source detection  
+* Automatic log source detection  
 
-*JSON normalization  
+* JSON normalization  
 
-*Secure HTTP forwarding  
+* Secure HTTP forwarding  
 
-*A Flask-based SIEM ingestion API  
+* A Flask-based SIEM ingestion API  
 
-*SQLite storage for ingested events  
+* SQLite storage for ingested events  
 
 **This project demonstrates the skills used in real-world SIEM, SOC, and security engineering roles—packaged into a clean, easy-to-run project for recruiters and interviewers.**
 
